@@ -1,0 +1,140 @@
+#version 450
+#extension GL_ARB_separate_shader_objects : enable
+
+#define PI 3.14
+#define WORKGROUP_SIZE 32
+layout (local_size_x = WORKGROUP_SIZE, local_size_y = WORKGROUP_SIZE, local_size_z = 1 ) in;
+
+// Uniform for Model, View and Projection matrices
+layout(binding = 5) uniform SpectralPipelineParameters {
+	vec3 FourierCoefficients;
+	int textureWidth;
+	int textureHeight;
+	float maxSpectralValue;
+	float minWavelength;
+	float maxWavelength;
+	int noOfSpectralValues;
+	float dominantWavelength;
+	float saturation;
+	float gaussianMinWidth;
+	float gaussianMaxWidth;
+	float hybridThreshold;
+	float filmDensity;
+	float airDensity;
+	float filmIOR;
+	float airIOR;
+	float interferencePower;
+	float interferenceConstant;
+} spectralPipelineParameters;
+
+struct Pixel{
+  vec4 value;
+};
+
+layout(std140, binding = 4) buffer buf
+{
+   Pixel imageData[];
+};
+
+
+
+float ConstructFourierSpectra(int x)
+{
+	float minWavelength = spectralPipelineParameters.minWavelength;
+	float maxWavelength = spectralPipelineParameters.maxWavelength;
+	float diffWavelength = maxWavelength - minWavelength;
+	int n = spectralPipelineParameters.noOfSpectralValues ;//* int(diffWavelength);
+	float del = (maxWavelength - minWavelength) / n;
+	float wavelength = minWavelength + x * del;
+
+	float angle = 2 * PI * ((x * del) / diffWavelength);
+	float val = spectralPipelineParameters.FourierCoefficients.x + spectralPipelineParameters.FourierCoefficients.y * cos(angle) + spectralPipelineParameters.FourierCoefficients.z * sin(angle);
+
+	return  wavelength;
+}
+
+
+float ConstructGaussianSpectra(int x)
+{
+	float dominantWavelength = spectralPipelineParameters.dominantWavelength;
+	float minWidth = spectralPipelineParameters.gaussianMinWidth;
+	float maxWidth = spectralPipelineParameters.gaussianMaxWidth;
+	float width = spectralPipelineParameters.saturation * minWidth + (1 - spectralPipelineParameters.saturation) * maxWidth;
+	float minWavelength = spectralPipelineParameters.minWavelength;
+	float maxWavelength = spectralPipelineParameters.maxWavelength;
+	float diffWavelength = maxWavelength - minWavelength;
+	int n = spectralPipelineParameters.noOfSpectralValues;// * int(diffWavelength);
+	float del = (maxWavelength - minWavelength) / n;
+
+	float wavelength = minWavelength + x * del;
+	float wavelengthDiff = (wavelength - dominantWavelength);
+	float pow = -1 * (wavelengthDiff * wavelengthDiff) / (2 * width * width);
+	float val = exp(pow);
+	return val;
+}
+
+float ConstructIridescentSpectra(int x,int y,float inputSpectra)
+{
+	float theta = y *(PI / 180.0);
+	float filmDensity =  spectralPipelineParameters.filmDensity;90.0; // 150.0;//
+	float airDensity = spectralPipelineParameters.airDensity;//90.0; // 100.0;// 
+	float filmIOR = spectralPipelineParameters.filmIOR;//  1.56; // 1.50;//
+	float airIOR = spectralPipelineParameters.airIOR;
+	// Snell's law
+	float theta_1 = asin(sin(theta) / filmIOR);
+
+	float val = 4 * PI * (filmIOR * filmDensity * cos(theta_1) + airIOR * airDensity * cos(theta));
+
+	float minWavelength = spectralPipelineParameters.minWavelength;
+	float maxWavelength = spectralPipelineParameters.maxWavelength;
+	int n = spectralPipelineParameters.noOfSpectralValues;
+	float del = (maxWavelength - minWavelength) / n;
+	float interferenceConstant = spectralPipelineParameters.interferenceConstant;// 5;
+	float m = spectralPipelineParameters.interferencePower;// 6;
+	float wavelength = minWavelength + x * del;
+	float delB = val / wavelength;
+
+	float cosDelB = cos(delB);
+	float R = 0.0;
+	if (cosDelB > 0)
+		R = inputSpectra * interferenceConstant * pow(cosDelB, m);
+	return R;
+}
+
+
+void main() {
+	if(gl_GlobalInvocationID.x >= spectralPipelineParameters.textureWidth || gl_GlobalInvocationID.y >= spectralPipelineParameters.textureHeight)
+		return;
+	int x = int(gl_GlobalInvocationID.x);
+	int y = int(gl_GlobalInvocationID.y);
+	
+	float spectralValue = 0;
+	if(spectralPipelineParameters.saturation > spectralPipelineParameters.hybridThreshold)
+		spectralValue = ConstructGaussianSpectra(x);
+	else
+		spectralValue = ConstructFourierSpectra(x);
+		
+		if(spectralValue < 0)
+		spectralValue = 0;
+
+		if(spectralValue > spectralPipelineParameters.maxSpectralValue)
+		spectralValue = spectralPipelineParameters.maxSpectralValue;
+
+	float iridescentSpectralValue = ConstructIridescentSpectra(x,y,spectralValue);
+
+			if(iridescentSpectralValue < 0)
+		iridescentSpectralValue = 0;
+
+		if(iridescentSpectralValue > spectralPipelineParameters.maxSpectralValue)
+		iridescentSpectralValue = spectralPipelineParameters.maxSpectralValue;
+
+		
+	float minWavelength = spectralPipelineParameters.minWavelength;
+	float maxWavelength = spectralPipelineParameters.maxWavelength;
+	int n = spectralPipelineParameters.noOfSpectralValues;
+	float del = (maxWavelength - minWavelength) / n;
+
+	float wavelength = minWavelength + x * del;
+	// Set the color in buffer
+	imageData[spectralPipelineParameters.textureWidth * y + x].value =  vec4(iridescentSpectralValue,spectralValue,wavelength,1.0);
+}
