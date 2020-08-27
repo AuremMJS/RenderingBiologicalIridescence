@@ -22,16 +22,30 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include "Device.h"
 #include "CommandPool.h"
+
+// Class to represent any Vulkan Buffer
 class Buffer
 {
 public:
+	// Vulkan Buffer
 	VkBuffer buffer;
+
+	// Memory of the buffer
 	VkDeviceMemory memory;
+
+	// Constructor
 	Buffer(Device *device, VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties);
+	
+	// Destructor
 	~Buffer();
 
+	// Cleanup function
 	void Cleanup(Device *device);
+
+	// Function to set the data in the buffer
 	void SetData(Device *device, void *value, VkDeviceSize bufferSize);
+
+	// Function to copy from one buffer to another
 	void copyBuffer(Device *device, CommandPool *commandPool, Buffer *srcBuffer,VkDeviceSize size);
 };
 

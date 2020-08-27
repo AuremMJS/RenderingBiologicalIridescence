@@ -67,7 +67,8 @@ void main() {
 	gRotMat[3] = vec4(0.0, 0.0, 0.0, 1.0);	
 
 	// Calculate vertex position
-	vec4 VCS_position =  ubo.view * ubo.model * gRotMat * vec4((inPosition + instanceOffset),  1.0);
+	vec4 VCS_position =  ubo.view * ubo.model * gRotMat * vec4((inPosition + instanceOffset), 
+	1.0);
     gl_Position = ubo.proj *VCS_position;
 
 	// Pass out color

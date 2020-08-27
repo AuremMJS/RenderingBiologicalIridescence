@@ -42,7 +42,8 @@ void Swapchain::createSwapChain(Device *device, GLFWwindow *window) {
 	uint32_t imageCount = swapChainSupport.capabilities.minImageCount + 1;
 
 	// Check whether the image count exceeds the max image count
-	if (swapChainSupport.capabilities.maxImageCount > 0 && imageCount > swapChainSupport.capabilities.maxImageCount) {
+	if (swapChainSupport.capabilities.maxImageCount > 0 
+		&& imageCount > swapChainSupport.capabilities.maxImageCount) {
 		// Set the image count to max image count
 		imageCount = swapChainSupport.capabilities.maxImageCount;
 	}
@@ -78,17 +79,20 @@ void Swapchain::createSwapChain(Device *device, GLFWwindow *window) {
 	QueueFamilyIndices indices = device->findQueueFamilies();
 
 	// Store the queue family indices in an array
-	uint32_t queueFamilyIndices[] = { indices.graphicsFamily.value(), indices.presentFamily.value() };
+	uint32_t queueFamilyIndices[] = { indices.graphicsFamily.value(), 
+		indices.presentFamily.value() };
 
 	// Check whether the graphics queue family and presentation queue family are different
 	if (indices.graphicsFamily != indices.presentFamily) {
-		// Use concurrent sharing - Images can be used across multiple queue families without explicit owner transfer
+		// Use concurrent sharing - Images can be used across multiple queue 
+		//families without explicit owner transfer
 		createInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
 		createInfo.queueFamilyIndexCount = 2;
 		createInfo.pQueueFamilyIndices = queueFamilyIndices;
 	}
 	else {
-		// Use exclusive sharing - Image is owned by one queue family at a time and ownership must be explicitly transferred
+		// Use exclusive sharing - Image is owned by one queue family at a time and 
+		//ownership must be explicitly transferred
 		createInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
 		createInfo.queueFamilyIndexCount = 0; // Optional
 		createInfo.pQueueFamilyIndices = nullptr; // Optional
@@ -114,7 +118,8 @@ void Swapchain::createSwapChain(Device *device, GLFWwindow *window) {
 	// 2nd Parameter - Create info
 	// 3rd Parameter - optional custom allocator
 	// 4th Parameter - pointer to swap chain
-	if (vkCreateSwapchainKHR(device->logicalDevice, &createInfo, nullptr, &swapChain) != VK_SUCCESS) {
+	if (vkCreateSwapchainKHR(device->logicalDevice, &createInfo, nullptr, &swapChain) 
+		!= VK_SUCCESS) {
 		// Swap chain creation failed. Throw runtime error exception
 		throw std::runtime_error("failed to create swap chain!");
 	}
@@ -126,7 +131,8 @@ void Swapchain::createSwapChain(Device *device, GLFWwindow *window) {
 	swapChainImages.resize(imageCount);
 
 	// Fetch the swap chain images
-	vkGetSwapchainImagesKHR(device->logicalDevice, swapChain, &imageCount, swapChainImages.data());
+	vkGetSwapchainImagesKHR(device->logicalDevice, swapChain, &imageCount, 
+		swapChainImages.data());
 
 	// Store the image format
 	swapChainImageFormat = surfaceFormat.format;

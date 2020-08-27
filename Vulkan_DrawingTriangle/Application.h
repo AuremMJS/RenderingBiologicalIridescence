@@ -1,5 +1,6 @@
 #pragma once
 
+// Include Files
 #include "Constants.h"
 #include "Swapchain.h"
 #include "Vertex.h"
@@ -15,7 +16,6 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <cstdlib>
 
-#define NO_OF_SHELLS 8
 // Maximum no of frames processed concurrently
 const int MAX_FRAMES_IN_FLIGHT = 2;
 
@@ -31,6 +31,7 @@ struct UniformBufferObject {
 	glm::mat4 proj;
 };
 
+// Spectral Paramters
 struct SpectralPipelineParameters
 {
 	Vec3 FourierCoefficients;
@@ -73,16 +74,18 @@ struct LightingConstants
 	float useOpacityMap;
 };
 
+// Iridescent Colours for different angle of incidence
 struct IridescentColors
 {
 	Vec4 colors[90];
 };
 
-
+// Pixel data of the image generated in the compute shader
 struct Pixel {
 	float r, g, b, a;
 };
 
+// Values of for UI elements
 struct UIParameters
 {
 	Vec3 inputLightColor;
@@ -102,7 +105,7 @@ struct UIParameters
 	float prevgaussianMinWidth;
 	float prevgaussianMaxWidth;
 
-	bool shouldRegenerateTexture;
+	bool shouldRegenerateIridescentColours;
 	float filmDensity;
 	float airDensity;
 	float filmIOR;
@@ -172,6 +175,7 @@ private:
 	// Handle to Swap chain
 	Swapchain *swapChain;
 
+	// Handle to ImGUI elements
 	ImGuiHelper *imGui;
 	
 	// Render pass
@@ -195,6 +199,7 @@ private:
 	// Vertex Buffer
 	Buffer *VertexBuffer;
 
+	// Instance Buffer to generate many copies of the mesh
 	Buffer *InstanceBuffer;
 
 	// Index Buffer
@@ -218,7 +223,7 @@ private:
 	std::vector<VkDescriptorSet> descriptorSets;
 
 	// Texture Image
-	TextureImage *textureImage;
+	TextureImage *opacityImage;
 
 	// Normal Image
 	TextureImage *normalImage;
@@ -285,18 +290,25 @@ private:
 	// Buffer size for compute pipeline
 	uint32_t ComputeBufferSize; // size of buffer in bytes.
 
+	// Map of wavelength and colour matching functions
 	std::map<double, Vec3> ColorMatchingFunctionMap;
 
+	// Map of hue angle and wavelength
 	std::map<std::string, double> HueAngleWavelengthMap;
 
+	// Map of hue angle and chromaticity coordinates
 	std::map<std::string, Vec3> HueAngleCoordMap;
 
-	Matrix3 AMatrix;
+	// Fourier Matrix
+	Matrix3 FourierMatrix;
 
+	// Fourier Coefficients
 	Vec3 FourierCoeffs;
 
+	// Spectral Parameters value
 	SpectralPipelineParameters spectralParameters;
 
+	// Iridescent colours generated in the compute shader
 	IridescentColors iridescentColors;
 
 	// arcball for storing light rotation
@@ -305,8 +317,10 @@ private:
 	// arcball for storing object rotation
 	BallData objectBall;
 
+	// Bool to check whether mouse is currently in drag event
 	bool isMouseDragged;
 
+	// variable to specify which button is clicked now
 	int whichButton;
 
 	// Vertices for Quad
@@ -318,16 +332,16 @@ private:
 	// Descriptor Set Layout
 	VkDescriptorSetLayout quadDescriptorSetLayout;
 
-	// Pipeline layout - uniforms
+	// Quad Pipeline layout - uniforms
 	VkPipelineLayout quadPipelineLayout;
 
-	// Graphics pipeline
+	// Quad Graphics pipeline
 	VkPipeline quadGraphicsPipeline;
 
-	// Vertex Buffer
+	// Quad Vertex Buffer
 	Buffer *quadVertexBuffer;
 
-	// Index Buffer
+	// Quad Index Buffer
 	Buffer *quadIndexBuffer;
 
 	// Descriptor Pool to create descriptor sets for quad pipeline
@@ -339,96 +353,207 @@ private:
 	// Reference Image
 	TextureImage *refImage;
 
+	// Collection of peak wavelengths
 	std::vector<float> peakWavelengths;
+
 public:
+	
+	// Value of GUI elements
 	static UIParameters uiParams;
+	
+	// Constructor
 	Application();
+	
+	// Destructor
 	~Application();
+
+	// run functions
 	void run();
+
+	// Function to initialize the window
 	void initWindow();
+
+	// Function to initialize the Vulkan API
 	void initVulkan();
+
+	// Main Loop functions that is run in every frame
 	void mainLoop();
+
+	// Cleanup function to destroy all elements
 	void cleanup();
+
+	// Function to handle window resize
 	static void framebufferResizeCallback(GLFWwindow* window, int width, int height);
+	
+	// Function callback for mouse click
 	static void mouse_callback(GLFWwindow* window, int button, int action, int mods);
+	
+	// Function callback for mouse position change
 	static void cursor_position_callback(GLFWwindow* window, double x, double y);
+	
+	// Function callback for keyboard keys
 	static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
+	
+	// Function to create Vulkan Instance
 	void createInstance();
+
+	// Function to setup debug messenger
 	void setupDebugMessenger();
+
+	// To create render pass
 	void createRenderPass();
+
+	// To create main graphics pipeline
 	void createGraphicsPipeline();
+
+	// Creating frame buffers
 	void createFramebuffers();
+
+	// Function to create depth resources
 	void createDepthResources();
+
+	// Function to find the format of depth image
 	VkFormat findDepthFormat();
+
+	// Function to find the format supported for a config
 	VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
+
+	// Functions to create descriptor sets
 	void createDescriptorPool();
 	void createDescriptorSets();
-	void createUniformBuffers();
-	void createIndexBuffer();
-	void createVertexBuffer();
-	Mesh ParseObjFile(const char* filename);
-	LightingConstants LoadMaterial(const char* filename);
 	void createDescriptorSetLayout();
+
+	// Function to create uniform buffer
+	void createUniformBuffers();
+
+	// Function to create index buffer
+	void createIndexBuffer();
+
+	// Function to create vertex buffer
+	void createVertexBuffer();
+
+	// Function to parse a obj file
+	Mesh ParseObjFile(const char* filename);
+
+	// Function to load properties from a MTL file
+	LightingConstants LoadMaterial(const char* filename);
+	
+	// Function to create command buffers
 	void createCommandBuffers();
+
+	// Function to create synchronisation objects
 	void createSyncObjects();
+
+	// Function to check whether validation layers are supported
 	bool checkValidationLayerSupport();
+
+	// Function to fetch the extensions
 	std::vector<const char*> getRequiredExtensions();
+
+	// Function to populate the debug messenger info
 	void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
+
+	// Callback function for debug message
 	static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
 		VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
 		VkDebugUtilsMessageTypeFlagsEXT messageType,
 		const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
 		void* pUserData);
+
+	// Function to read a file
 	static std::vector<char> readFile(const std::string& filename);
+
+	// Function to create a shader file
 	VkShaderModule createShaderModule(const std::vector<char>& code);
+
+	// Function to submit a command buffer to queue
 	void drawFrame();
+
+	// Function to update the uniform buffer values
 	void updateUniformBuffer(uint32_t currentImage);
+
+	// Function to update light parameter values
 	void updateLightingConstants(uint32_t currentImage);
+
+	// Function to recreate the swap chain and related elements
 	void recreateSwapChain();
+
+	// Function to destroy swap chain and related elements
 	void cleanupSwapChain();
+
+	// Function to create a compute pipeline
 	void createComputePipeline();
+
+	//function to create descriptor sets for compute pipeline to  provide the details about descriptor bindings in every shader
 	void createComputeDescriptorSet();
 	void createComputeDescriptorPool();
 
 	// function to create descriptor set layout for compute pipeline to  provide the details about descriptor bindings in every shader
 	void createComputeDescriptorSetLayout();
+
+	// Functions to create compute command buffers
 	void createComputeCommandPool();
-	void createComputeBuffers();
 	void createComputeCommandBuffers();
+
+	// Function to create buffers used in compute pipeline
+	void createComputeBuffers();
+
+	// Function to run the compute command buffer
 	void runComputeCommandBuffer();
-	void createTextureImageFromComputeBuffer();
-	void FindMatrixA();
+
+	// Function to fetch the iridescent colours from the generated iridescent spectra
+	void FetchIridescentColoursFromSpectra();
+
+	// Function to calculate the fourier matrix
+	void FindFourierMatrix();
+
+	// Function to read the colour matching functions file
 	void ReadColorMatchingXMLFile(const char* filename);
+
+	// Function to compute fourier coefficients
 	void FindFourierCoefficients(Vec3 colorInXYZ);
-	std::vector<double> ConstructSpectra();
+
+	// Function to get the XYZ colour from a spectra
 	Vec3 GetXYZColorFromSpectra(std::vector<double> spectra);
+
+	// Function to read the chromaticity coordinates file
 	void ReadChromaticityXMLFile(const char* filename);
+
+	// Conversion functions
 	Vec3 ConvertRGBtoXYZ(Vec3 colorInRGB);
-	Vec3 ConvertRGBtoHSV(Vec3 colorInRGB);
 	Vec3 ConvertXYZtoRGB(Vec3 colorInXYZ);
-	Vec3 ConvertXYZtoHSV(Vec3 colorInXYZ);
+
+	// Function to calculate saturation and dominant wavelength
+	Vec3 CalculateSaturationAndDominantWavelength(Vec3 colorInXYZ);
+
+	// Function to get the hue value
 	double getHueFromXYZ(Vec3 colorInXYZ);
-	std::vector<double> ConstructSpectraGaussian(Vec3 hsv);
+
+	// Function to update the spectral parameters
 	void UpdateSpectralParameters();
-	std::vector<double> ConstructIridescentSpectra(std::vector<double> inputSpectra);
-	
+
+	// Function to init the quad 
 	void InitQuad();
+
+	// Function to create the quad pipeline
 	void createQuadGraphicsPipeline();
 
-	// Function to create descriptor pool to create descriptor sets
+	// Function to create quad descriptor pool to create descriptor sets
 	void createQuadDescriptorPool();
 
-	// Function to create descriptor sets for each Vk Buffer
+	// Function to create quad descriptor sets for each Vk Buffer
 	void createQuadDescriptorSets();
 
-	// Function to create Index Buffer
+	// Function to create quad Index Buffer
 	void createQuadIndexBuffer();
-	// Function to create Vertex Buffer
+
+	// Function to create quad Vertex Buffer
 	void createQuadVertexBuffer();
-	// function to create descriptor set layout to  provide the details about descriptor bindings in every shader
+	
+	// function to create quad descriptor set layout to  provide the details about descriptor bindings in every shader
 	void createQuadDescriptorSetLayout();
 
-
-	void prepareInstanceData();
+	// Function to generate instance data
+	void GenerateInstanceData();
 };
 

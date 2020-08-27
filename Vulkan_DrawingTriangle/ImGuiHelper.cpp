@@ -85,7 +85,8 @@ void ImGuiHelper::createimGuiCommandBuffers(Device *device, uint32_t commandBuff
 	commandBufferAllocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
 	commandBufferAllocateInfo.commandPool = imGuiCommandPool;
 	commandBufferAllocateInfo.commandBufferCount = commandBufferCount;
-	vkAllocateCommandBuffers(device->logicalDevice, &commandBufferAllocateInfo, imGuiCommandBuffers.data());
+	vkAllocateCommandBuffers(device->logicalDevice, &commandBufferAllocateInfo, 
+		imGuiCommandBuffers.data());
 }
 
 // Function to create render pass
@@ -160,7 +161,8 @@ void ImGuiHelper::createImGUIRenderPass(Device *device, VkFormat swapChainImageF
 	// 2nd Parameter - Render pass create info
 	// 3rd Parameter - Custom Allocator
 	// 4th Parameter - Pointer to the created render pass
-	if (vkCreateRenderPass(device->logicalDevice, &renderPassInfo, nullptr, &imGUIRenderPass) != VK_SUCCESS) {
+	if (vkCreateRenderPass(device->logicalDevice, &renderPassInfo, nullptr, &imGUIRenderPass) 
+		!= VK_SUCCESS) {
 		// Throw runtime error exception as render pass creation failed
 		throw std::runtime_error("failed to create ImGUI render pass!");
 	}
@@ -248,8 +250,6 @@ void ImGuiHelper::RenderImGUI(Device *device, VkExtent2D swapChainExtent,  uint3
 	VkResult err;
 
 	{
-		//err = vkResetCommandPool(device->logicalDevice, imGuiCommandPool, 0);
-		//check_vk_result(err);
 		VkCommandBufferBeginInfo info = {};
 		info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 		info.flags |= VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;

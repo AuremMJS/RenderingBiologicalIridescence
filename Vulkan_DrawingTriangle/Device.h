@@ -64,6 +64,7 @@ struct SwapChainSupportDetails {
 	std::vector<VkPresentModeKHR> presentModes;
 };
 
+// Class to represent physical and logical device
 class Device
 {
 	
@@ -86,16 +87,36 @@ public:
 	// Instance of Surface
 	VkSurfaceKHR surface;
 
+	// Constructor
 	Device(VkInstance *instance, GLFWwindow *window);
+
+	// Destructor
 	~Device();
+
+	// Cleanup function
 	void Cleanup(VkInstance *instance);
 
+	// Function to pick the physical GPU
 	void pickPhysicalDevice(VkInstance *instance);
+
+	// Function to create the logical device
 	void createLogicalDevice();
+
+	// Function to check whether the program is suitable in the selected device
 	bool isDeviceSuitable(VkPhysicalDevice device);
+
+	// Function to find the memory type
 	uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
+	
+	// Function to find the queue families
 	QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device = nullptr);
+
+	// Function to check the support for an extension
 	bool checkDeviceExtensionSupport(VkPhysicalDevice device);
+
+	// Function to verify the support to the swap chain
 	SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device = nullptr);
+
+	// Function to create the surface
 	void createSurface(VkInstance *instance, GLFWwindow *window);
 };

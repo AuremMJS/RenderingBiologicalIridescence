@@ -2,11 +2,6 @@
 #ifndef _H_Ball
 #define _H_Ball
 #include "BallAux.h"
-//#ifdef __APPLE__
-//#include <GLUT/glut.h>
-//#else
-//#include <GL/glut.h>
-//#endif
 
 typedef enum AxisSet{NoAxes, CameraAxes, BodyAxes, OtherAxes, NSets} AxisSet;
 typedef float *ConstraintSet;
@@ -34,11 +29,4 @@ void Ball_Update(BallData *ball);
 void Ball_Value(BallData *ball, float *mNow);
 void Ball_BeginDrag(BallData *ball);
 void Ball_EndDrag(BallData *ball);
-void Ball_Draw(BallData *ball);
-/* Private routines */
-//void DrawAnyArc(HVect vFrom, HVect vTo);
-//void DrawHalfArc(HVect n);
-//void Ball_DrawConstraints(BallData *ball);
-//void Ball_DrawDragArc(BallData *ball);
-//void Ball_DrawResultArc(BallData *ball);
 #endif

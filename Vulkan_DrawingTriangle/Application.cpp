@@ -1,61 +1,65 @@
 #include "Application.h"
 
-UIParameters Application::uiParams = { Vec3{1.0,1.0,1.0}, Vec3{1.0,1.0,1.0} ,
-0.7,
-390.0,
-790.0,
-400.0,
-5.0,
-75.0,
+// Initializing the GUI elements values
+UIParameters Application::uiParams = { 
+Vec3{1.0,1.0,1.0}, // input Light Color;
+Vec3{1.0,1.0,1.0}, // output Light Color;
+0.7,			   // hybrid Threshold;
+MIN_WAVELENGTH,	   // min Wavelength;
+MAX_WAVELENGTH,	   // max Wavelength;
+400.0,			   //  no Of Spectral Values;
+5.0,			   // gaussian Min Width;
+75.0,			   // gaussian Max Width;
+				   //
+Vec3{1.0,1.0,1.0}, // prev input Light Color;
+0.7,			   // prev hybrid Threshold;
+MIN_WAVELENGTH,	   // prev min Wavelength;
+MAX_WAVELENGTH,	   // prev max Wavelength;
+400.0,			   //  prev no Of Spectral Values;
+5.0,			   // prev gaussian Min Width;
+75.0,			   // prev gaussian Max Width;
+				   //
+true,			   // should RegenerateTexture;
+90.0,			   // film Density;
+90.0,			   // air Density;
+1.56,			   // film IOR;
+1.0,			   // air IOR;
+4.75,		       // interference Power;
+5,				   // interference Constant;
+0,				   // no Of Butterflies;
+90.0,			   // prev film Density;
+90.0,			   // prev air Density;
+1.56,			   // prev film IOR;
+1.0,			   // prev air IOR;
+4.75,			   // prev interference Power;
+5,				   // prev interference Constant;
+0,				   // prev no Of Butterflies;
+3.5,			   // scale
+false,			   // is MTL File Available;
+false,			   // use MTL File;
+28.0,			   // spectral Exponent;
+0.3,			   // ambient Intensity;
+1.5,			   // iridescence Intensity;
+1.0,			   // transparency;
+true,			   // iridescence Enabled;
+true,			   // specular Enabled;
+true,			   // ambient Enabled;
+true,			   // use Normal Map;
+true,			   // use Opacity Map;
+false,			   // should Update No Of Butterflies;
+0.0,			   // peak Wavelength;
+0.0				   // Incidence Angle To Verify;
+};				    
 
-Vec3{1.0,1.0,1.0},
-0.7,
-390.0,
-790.0,
-400.0,
-5.0,
-75.0,
-
-true,
-90.0,
-90.0,
-1.56,
-1.0,
-4.75,//2.5,
-5,
-0,
-90.0,
-90.0,
-1.56,
-1.0,
-4.75,//2.5,
-5,
-0,
-3.5,//2.0,
-false,
-false,
-28.0,
-0.3,
-1.5,
-1.0,
-true,
-true,
-true,
-true,
-true,
-false,
-0.0,
-0.0
-};
-
-void DrawUI()
+// Function to draw the GUI elements
+void DrawUI()	   
 {
 
 	float lightColor[3] = { Application::uiParams.inputLightColor.x, Application::uiParams.inputLightColor.y, Application::uiParams.inputLightColor.z };
 	if (ImGui::CollapsingHeader("Spectral Config"))
 	{
-		ImGui::SliderFloat("Minimum Wavelength", &Application::uiParams.minWavelength, 390.0, 790.0);
-		ImGui::SliderFloat("Maximum Wavelength", &Application::uiParams.maxWavelength, Application::uiParams.minWavelength, 790.0);
+		ImGui::SliderFloat("Minimum Wavelength", &Application::uiParams.minWavelength, MIN_WAVELENGTH, MAX_WAVELENGTH);
+		ImGui::SliderFloat("Maximum Wavelength", &Application::uiParams.maxWavelength, Application::uiParams.minWavelength, MAX_WAVELENGTH);
 		ImGui::SliderInt("No of Spectral Values", &Application::uiParams.noOfSpectralValues, 50, 400);
 		ImGui::SliderFloat("Hybrid Threshold", &Application::uiParams.hybridThreshold, 0.0, 1.0);
 		ImGui::SliderFloat("Minimum Gaussian Width", &Application::uiParams.gaussianMinWidth, 1.0, Application::uiParams.maxWavelength - Application::uiParams.minWavelength);
@@ -74,7 +78,7 @@ void DrawUI()
 			|| Application::uiParams.prevgaussianMaxWidth != Application::uiParams.gaussianMaxWidth
 			|| Application::uiParams.prevgaussianMinWidth != Application::uiParams.gaussianMinWidth)
 		{
-			Application::uiParams.shouldRegenerateTexture = true;
+			Application::uiParams.shouldRegenerateIridescentColours = true;
 			
 			Application::uiParams.previnputLightColor = Application::uiParams.inputLightColor;
 			Application::uiParams.prevhybridThreshold = Application::uiParams.hybridThreshold;
@@ -118,7 +122,7 @@ void DrawUI()
 			|| Application::uiParams.prevgaussianMaxWidth != Application::uiParams.gaussianMaxWidth
 			|| Application::uiParams.prevgaussianMinWidth != Application::uiParams.gaussianMinWidth)
 		{
-			Application::uiParams.shouldRegenerateTexture = true;
+			Application::uiParams.shouldRegenerateIridescentColours = true;
 			Application::uiParams.prevfilmDensity = Application::uiParams.filmDensity;
 			Application::uiParams.prevairDensity = Application::uiParams.airDensity;
 			Application::uiParams.prevfilmIOR = Application::uiParams.filmIOR;
@@ -218,7 +222,7 @@ void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT
 	}
 }
 
-
+// Constructor
 Application::Application()
 {
 	// initialise arcballs to 80% of the widget's size
@@ -228,12 +232,12 @@ Application::Application()
 	whichButton = -1;
 }
 
-
+// Destructor
 Application::~Application()
 {
 }
 
-
+// Run function
 void Application::run() {
 
 	// Initialize a Window
@@ -248,9 +252,6 @@ void Application::run() {
 	// Cleanup and deallocate allocate resources
 	cleanup();
 }
-/////////////////////
-// Run Functions ///
-///////////////////
 
 // Function to initializes a Window to render the objects
 void Application::initWindow() {
@@ -302,20 +303,14 @@ void Application::initVulkan() {
 	// Create Device
 	device = new Device(&instance, window);
 
+	// Read the colour mathching functions file
 	ReadColorMatchingXMLFile(COLOR_MATCH_FUNCTIONS);
 
-	FindMatrixA();
+	// Find the fourier matrix
+	FindFourierMatrix();
 
+	// Read the chromaticity coords file
 	ReadChromaticityXMLFile(CHROMATICITY_COORDS);
-
-	//FindFourierCoefficients(Vec3{ 0.18,0.27,0.53 });
-	//
-	//std::vector<double> spectra = ConstructSpectraGaussian(ConvertXYZtoHSV(Vec3{ 0.18,0.27,0.53 }));
-	//
-	//std::vector iridescentSpectra = ConstructIridescentSpectra(spectra);
-	//
-	//Vec3 color = GetXYZColorFromSpectra(iridescentSpectra);
-	//color = ConvertXYZtoRGB(color);
 
 	// Create Command Pool
 	commandPool = new CommandPool(device);
@@ -341,18 +336,11 @@ void Application::initVulkan() {
 	// Create descriptor sets
 	createComputeDescriptorSet();
 
-
+	// Update the spectral paramters
 	UpdateSpectralParameters();
-
-	//CreateIridescentImage();
 
 	// Create command buffers for compute pipeline
 	createComputeCommandBuffers();
-
-	// Run the compute pipeline to compute the volumetric texture
-	//runComputeCommandBuffer();
-
-	//createTextureImageFromComputeBuffer();
 
 	// Create Swap chain
 	swapChain = new Swapchain(device, window);
@@ -369,40 +357,47 @@ void Application::initVulkan() {
 	// Create the graphics pipeline
 	createGraphicsPipeline();
 
+	// Create the quad graphics pipeline
 	createQuadGraphicsPipeline();
 
 	// Init ImGUI
 	imGui = new ImGuiHelper(&instance, window, device, swapChain, commandPool);
 
+	// Create the depth resources
 	createDepthResources();
 
 	// Create Frame Buffers
 	createFramebuffers();
 
+	// Init the quad
 	InitQuad();
 
 	// Parse the Object file
 	m = ParseObjFile(MODEL);
 
-	// Create texture image
-	textureImage = new TextureImage(device, commandPool, OPACITY_MAP);
+	// Create texture image for opacity map
+	opacityImage = new TextureImage(device, commandPool, OPACITY_MAP);
 
+	// Create texture image for normal map
 	normalImage = new TextureImage(device, commandPool, NORMAL_MAP);
 
-	refImage = new TextureImage(device, commandPool, "ref_image.ppm");
+	// Create texture image for reference image
+	refImage = new TextureImage(device, commandPool, REFERENCE_IMAGE);
 
 	// Create Vertex Buffer
 	createVertexBuffer();
 
+	// Create the instance buffer
 	InstanceBuffer = new Buffer(device, pow(10, 6) * sizeof(InstanceData), VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
-	prepareInstanceData();
+	// Generate instance data
+	GenerateInstanceData();
 
 	// Create Index Buffer
 	createIndexBuffer();
 
+	// Create quad vertex and index buffer
 	createQuadVertexBuffer();
-
 	createQuadIndexBuffer();
 
 	// Create the Uniform Buffers
@@ -436,15 +431,19 @@ void Application::mainLoop() {
 
 		// Checks for events like Window close by the user
 		glfwPollEvents();
+
+		// Generate Instance data and render many copies of the mesh
 		if (uiParams.shouldUpdateNoOfButterflies)
 		{
-			prepareInstanceData();
+			GenerateInstanceData();
 
 			createCommandBuffers();
 
 			uiParams.shouldUpdateNoOfButterflies = false;
 		}
-		if (uiParams.shouldRegenerateTexture)
+
+		// Regenerate the iridescent colours
+		if (uiParams.shouldRegenerateIridescentColours)
 		{
 
 			UpdateSpectralParameters();
@@ -453,10 +452,11 @@ void Application::mainLoop() {
 
 			runComputeCommandBuffer();
 
-			createTextureImageFromComputeBuffer();
+			FetchIridescentColoursFromSpectra();
 
-			uiParams.shouldRegenerateTexture = false;
+			uiParams.shouldRegenerateIridescentColours = false;
 		}
+
 		// Update ImGUI Min Image Count if resized
 		if (framebufferResized)
 		{
@@ -474,8 +474,8 @@ void Application::mainLoop() {
 // Function to destroy all Vulkan objects and free allocated resources
 void Application::cleanup() {
 
+	// Cleanup swap chain
 	cleanupSwapChain();
-
 
 	// Destroy the compute pipeline
 	vkDestroyPipeline(device->logicalDevice, ComputePipeline, nullptr);
@@ -486,20 +486,20 @@ void Application::cleanup() {
 	// Destroy the descriptor pool
 	vkDestroyDescriptorPool(device->logicalDevice, computeDescriptorPool, nullptr);
 
-	textureImage->Cleanup(device);
-
+	// Destroy the texture images
+	opacityImage->Cleanup(device);
 	normalImage->Cleanup(device);
-
 	refImage->Cleanup(device);
 
+	// Destroy the descriptor sets
 	vkDestroyDescriptorSetLayout(device->logicalDevice, descriptorSetLayout, nullptr);
-
 	vkDestroyDescriptorSetLayout(device->logicalDevice, computeDescriptorSetLayout, nullptr);
-
 	vkDestroyDescriptorSetLayout(device->logicalDevice, quadDescriptorSetLayout, nullptr);
 
+	// Cleanup the spectral parameters
 	SpectralParametersBuffer->Cleanup(device);
 
+	// Cleanup the compute buffers
 	ComputeBuffers->Cleanup(device);
 
 	// Destroy the index buffer
@@ -508,12 +508,12 @@ void Application::cleanup() {
 	// Destroy the vertex buffer
 	VertexBuffer->Cleanup(device);
 
+	// Destroy instance buffer
 	InstanceBuffer->Cleanup(device);
 
+	// Destroy quad index and vertex buffers
 	quadIndexBuffer->Cleanup(device);
-
 	quadVertexBuffer->Cleanup(device);
-
 
 	// Destroy the semaphores and fences
 	for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
@@ -531,6 +531,7 @@ void Application::cleanup() {
 	// Destroy command pool
 	commandPool->Cleanup(device);
 
+	// Destroy compute command pool
 	vkDestroyCommandPool(device->logicalDevice, computeCommandPool, nullptr);
 
 	// Check whether validation layers are enabled
@@ -554,10 +555,6 @@ void Application::cleanup() {
 	glfwTerminate();
 }
 
-////////////////////////////
-// Init Window Functions //
-//////////////////////////
-
 // Callback function called when window is resized
 void Application::framebufferResizeCallback(GLFWwindow* window, int width, int height) {
 	// Get the pointer to the application
@@ -568,6 +565,7 @@ void Application::framebufferResizeCallback(GLFWwindow* window, int width, int h
 	app->height = height;
 }
 
+// Callback function called when mouse position changes
 void Application::cursor_position_callback(GLFWwindow* window, double x, double y) {
 	auto app = reinterpret_cast<Application*>(glfwGetWindowUserPointer(window));
 	HVect vNow;
@@ -588,7 +586,7 @@ void Application::cursor_position_callback(GLFWwindow* window, double x, double 
 		}
 		if (app->whichButton == GLFW_MOUSE_BUTTON_MIDDLE)
 		{
-			vNow.x = 0.0;// (2.0 * x - size) / size;
+			vNow.x = 0.0;
 			vNow.y = (size - 2.0 * y) / size;
 
 			// pass it to the arcball code	
@@ -643,7 +641,7 @@ void Application::mouse_callback(GLFWwindow* window, int button, int action, int
 		}
 	}
 	if (button == GLFW_MOUSE_BUTTON_MIDDLE) {
-		vNow2.x = 0.0;//(2.0 * x - size) / size;
+		vNow2.x = 0.0;
 		vNow2.y = (size - 2.0 * y) / size;
 		if (GLFW_PRESS == action)
 		{
@@ -704,25 +702,16 @@ void Application::key_callback(GLFWwindow* window, int key, int scancode, int ac
 	auto app = reinterpret_cast<Application*>(glfwGetWindowUserPointer(window));
 	if (key == GLFW_KEY_A && action == GLFW_PRESS)
 		uiParams.ambientEnabled = !uiParams.ambientEnabled;
-	//app->m.lightingConstants.ambientEnabled = !app->m.lightingConstants.ambientEnabled;
 	if (key == GLFW_KEY_I && action == GLFW_PRESS)
 		uiParams.iridescenceEnabled = !uiParams.iridescenceEnabled;
-	//app->m.lightingConstants.DiffuseEnabled = !app->m.lightingConstants.DiffuseEnabled;
 	if (key == GLFW_KEY_S && action == GLFW_PRESS)
 		uiParams.specularEnabled = !uiParams.specularEnabled;
-	//app->m.lightingConstants.specularEnabled = !app->m.lightingConstants.specularEnabled;
 	if (key == GLFW_KEY_N && action == GLFW_PRESS)
 		uiParams.useNormalMap = !uiParams.useNormalMap;
-	//app->m.lightingConstants.textureEnabled = !app->m.lightingConstants.textureEnabled;
 	if (key == GLFW_KEY_O && action == GLFW_PRESS)
 		uiParams.useOpacityMap = !uiParams.useOpacityMap;
 
 }
-
-
-////////////////////////////
-// Init Vulkan Functions //
-//////////////////////////
 
 // Function to create an  instance - the connection between the application and the Vulkan library
 void Application::createInstance()
@@ -824,7 +813,8 @@ void Application::setupDebugMessenger() {
 	populateDebugMessengerCreateInfo(createInfo);
 
 	// Create the Debug Messenger Extension
-	if (CreateDebugUtilsMessengerEXT(instance, &createInfo, nullptr, &debugMessenger) != VK_SUCCESS) {
+	if (CreateDebugUtilsMessengerEXT(instance, &createInfo, nullptr, &debugMessenger) 
+		!= VK_SUCCESS) {
 		// Throw runtime error if the extension creation fails
 		throw std::runtime_error("failed to set up debug messenger!");
 	}
@@ -914,19 +904,6 @@ void Application::createRenderPass() {
 	dependencies[1].dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 	dependencies[1].dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
 
-
-	//// Subpass dependency to make the render pass wait for the color attachment output bit stage
-	//VkSubpassDependency dependency = {};
-	//// Specify the dependency and dependent subpasses
-	//dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
-	//dependency.dstSubpass = 0;
-	//// Specify the operation to wait for. i.e, wait for the swap chain to read the image
-	//dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-	//dependency.srcAccessMask = 0;
-	//// Specify the operation that should wait
-	//dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-	//dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-
 	std::array<VkAttachmentDescription, 2> attachments = { colorAttachment, depthAttachment };
 
 	// Render pass create info
@@ -995,7 +972,8 @@ void Application::createGraphicsPipeline() {
 	fragShaderStageInfo.pName = "main";
 
 	// Create an array to store vertex shader stage create info and fragment shader stage create info
-	VkPipelineShaderStageCreateInfo shaderStages[] = { vertShaderStageInfo, fragShaderStageInfo };
+	VkPipelineShaderStageCreateInfo shaderStages[] = { vertShaderStageInfo, 
+		fragShaderStageInfo };
 
 	// Binding description
 	auto bindingDescription = getBindingDescription();
@@ -1010,7 +988,8 @@ void Application::createGraphicsPipeline() {
 	// Details for loading vertex data
 	vertexInputInfo.vertexBindingDescriptionCount = 2;
 	vertexInputInfo.pVertexBindingDescriptions = bindingDescription.data();
-	vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDescriptions.size());
+	vertexInputInfo.vertexAttributeDescriptionCount = 
+		static_cast<uint32_t>(attributeDescriptions.size());
 	vertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
 
 	// Information of kind of geometry drawn
@@ -1104,7 +1083,8 @@ void Application::createGraphicsPipeline() {
 	// Colour blending configuration per attached framebuffer
 	// Colour blending - way to combine with colour already in framebuffer
 	VkPipelineColorBlendAttachmentState colorBlendAttachment = {};
-	colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+	colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT 
+		| VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
 	colorBlendAttachment.blendEnable = VK_TRUE;
 	colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD;
 	colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD;
@@ -1154,7 +1134,8 @@ VK_DYNAMIC_STATE_LINE_WIDTH
 	pipelineLayoutInfo.pushConstantRangeCount = 0;
 
 	// Create the pipeline layout
-	if (vkCreatePipelineLayout(device->logicalDevice, &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS) {
+	if (vkCreatePipelineLayout(device->logicalDevice, &pipelineLayoutInfo, nullptr,
+		&pipelineLayout) != VK_SUCCESS) {
 		// Throw runtime error exception as pipeline layout creation failed
 		throw std::runtime_error("failed to create pipeline layout!");
 	}
@@ -1200,7 +1181,8 @@ VK_DYNAMIC_STATE_LINE_WIDTH
 	// 3rd Parameter - Pipeline create info
 	// 4th Parameter - Custom allocator
 	// 5th Parameter - Pointer to the created graphics pipeline
-	if (vkCreateGraphicsPipelines(device->logicalDevice, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphicsPipeline) != VK_SUCCESS) {
+	if (vkCreateGraphicsPipelines(device->logicalDevice, VK_NULL_HANDLE, 1, &pipelineInfo, 
+		nullptr, &graphicsPipeline) != VK_SUCCESS) {
 		// Throw runtime error exception as graphics pipeline creation failed
 		throw std::runtime_error("failed to create graphics pipeline!");
 	}
@@ -1249,7 +1231,8 @@ depthImage->imageView
 		// 2nd Parameter - Frame buffer create info
 		// 3rd Parameter - Custom Allocator
 		// 4th Parameter - Pointer to the created frame buffer
-		if (vkCreateFramebuffer(device->logicalDevice, &framebufferInfo, nullptr, &swapChainFramebuffers[i]) != VK_SUCCESS) {
+		if (vkCreateFramebuffer(device->logicalDevice, &framebufferInfo, nullptr,
+				&swapChainFramebuffers[i]) != VK_SUCCESS) {
 			// Throw runtime error exception as framebuffer creation failed
 			throw std::runtime_error("failed to create framebuffer!");
 		}
@@ -1309,7 +1292,8 @@ void Application::createDescriptorPool() {
 
 // Function to create descriptor sets for each Vk Buffer
 void Application::createDescriptorSets() {
-	std::vector<VkDescriptorSetLayout> layouts(swapChain->swapChainImages.size(), descriptorSetLayout);
+	std::vector<VkDescriptorSetLayout> layouts(swapChain->swapChainImages.size(), 
+		descriptorSetLayout);
 	VkDescriptorSetAllocateInfo allocInfo = {};
 	allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
 	allocInfo.descriptorPool = descriptorPool;
@@ -1317,7 +1301,8 @@ void Application::createDescriptorSets() {
 	allocInfo.pSetLayouts = layouts.data();
 
 	descriptorSets.resize(swapChain->swapChainImages.size());
-	if (vkAllocateDescriptorSets(device->logicalDevice, &allocInfo, descriptorSets.data()) != VK_SUCCESS) {
+	if (vkAllocateDescriptorSets(device->logicalDevice, &allocInfo, descriptorSets.data()) 
+		!= VK_SUCCESS) {
 		throw std::runtime_error("failed to allocate descriptor sets!");
 	}
 
@@ -1334,8 +1319,8 @@ void Application::createDescriptorSets() {
 
 		VkDescriptorImageInfo imageInfo = {};
 		imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-		imageInfo.imageView = textureImage->textureImage->imageView;
-		imageInfo.sampler = textureImage->textureSampler;
+		imageInfo.imageView = opacityImage->textureImage->imageView;
+		imageInfo.sampler = opacityImage->textureSampler;
 
 		VkDescriptorBufferInfo iridescentBufferInfo = {};
 		iridescentBufferInfo.buffer = iridescentBuffers[i]->buffer;
@@ -1389,7 +1374,8 @@ void Application::createDescriptorSets() {
 		descriptorWrites[4].descriptorCount = 1;
 		descriptorWrites[4].pImageInfo = &normalImageInfo;
 
-		vkUpdateDescriptorSets(device->logicalDevice, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
+		vkUpdateDescriptorSets(device->logicalDevice, static_cast<uint32_t>
+			(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
 	}
 }
 
@@ -1528,11 +1514,8 @@ Mesh Application::ParseObjFile(const char* filename)
 				mesh.vertices.push_back(v);
 			}
 			int vertex_index = mesh.vertices.size();
-			//mesh.indices.push_back(vertex_index - 4);
 			mesh.indices.push_back(vertex_index - 3);
 			mesh.indices.push_back(vertex_index - 2);
-			//mesh.indices.push_back(vertex_index - 4);
-			//mesh.indices.push_back(vertex_index - 2);
 			mesh.indices.push_back(vertex_index - 1);
 
 		}
@@ -1659,7 +1642,8 @@ void Application::createCommandBuffers() {
 	allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
 	// Specify the command pool
 	allocInfo.commandPool = commandPool->commandPool;
-	// Specify the command buffer is primary command buffer - can be submitted to queue for execution, but cannot be called from another other command buffer
+	// Specify the command buffer is primary command buffer - can be submitted to 
+	//queue for execution, but cannot be called from another other command buffer
 	allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
 	// Specify the no of buffers to allocate
 	allocInfo.commandBufferCount = (uint32_t)commandBuffers.size();
@@ -1668,7 +1652,8 @@ void Application::createCommandBuffers() {
 	// 1st Parameter - GPU
 	// 2nd Parameter - Command Buffer allocate info
 	// 3rd Parameter - Pointer to Command Buffers
-	if (vkAllocateCommandBuffers(device->logicalDevice, &allocInfo, commandBuffers.data()) != VK_SUCCESS) {
+	if (vkAllocateCommandBuffers(device->logicalDevice, &allocInfo, commandBuffers.data()) 
+		!= VK_SUCCESS) {
 		// Throw runtime error exception as allocation for command buffers failed
 		throw std::runtime_error("failed to allocate command buffers!");
 	}
@@ -1729,22 +1714,24 @@ void Application::createCommandBuffers() {
 		VkBuffer vertexBuffers[] = { VertexBuffer->buffer };
 		VkBuffer instanceBuffers[] = { InstanceBuffer->buffer };
 		VkDeviceSize offsets[] = { 0 };
+
+		// Bind Vertex Buffer
 		vkCmdBindVertexBuffers(commandBuffers[i], 0, 1, vertexBuffers, offsets);
 
+		// Bind Instance Buffer
 		vkCmdBindVertexBuffers(commandBuffers[i], 1, 1, instanceBuffers, offsets);
 
+		// Bind Index Buffer
 		vkCmdBindIndexBuffer(commandBuffers[i], IndexBuffer->buffer, 0, VK_INDEX_TYPE_UINT32);
 
-		// Draw the polygon - triangle
-		// 1st Parameter - command buffer
-		// 2nd Parameter - vertex count
-		// 3rd Parameter - instance count
-		// 4th Parameter - first vertex
-		// 5th Parameter - first instance
-		//vkCmdDraw(commandBuffers[i], static_cast<uint32_t>(vertices.size()), 1, 0, 0);
-
-		vkCmdBindDescriptorSets(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSets[i], 0, nullptr);
-		vkCmdDrawIndexed(commandBuffers[i], static_cast<uint32_t>(m.indices.size()), pow(10, uiParams.noOfButterflies), 0, 0, 0);
+		// Bind descriptor sets
+		vkCmdBindDescriptorSets(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS,
+			pipelineLayout, 0, 1, &descriptorSets[i], 0, nullptr);
+		
+		// Draw the meshes
+		vkCmdDrawIndexed(commandBuffers[i], 
+			static_cast<uint32_t>(m.indices.size()), pow(10, uiParams.noOfButterflies), 
+			0, 0, 0);
 
 		// Move to next subpass
 		vkCmdNextSubpass(commandBuffers[i], VK_SUBPASS_CONTENTS_INLINE);
@@ -1754,16 +1741,20 @@ void Application::createCommandBuffers() {
 		{
 			VkBuffer quadVertexBuffers[] = { quadVertexBuffer->buffer };
 
-			vkCmdBindDescriptorSets(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, quadPipelineLayout, 0, 1, &quadDescriptorSets[i], 0, nullptr);
+			vkCmdBindDescriptorSets(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS,
+				quadPipelineLayout, 0, 1, &quadDescriptorSets[i], 0, nullptr);
 
 			vkCmdBindVertexBuffers(commandBuffers[i], 0, 1, quadVertexBuffers, offsets);
 
-			vkCmdBindIndexBuffer(commandBuffers[i], quadIndexBuffer->buffer, 0, VK_INDEX_TYPE_UINT32);
+			vkCmdBindIndexBuffer(commandBuffers[i], quadIndexBuffer->buffer, 0, 
+				VK_INDEX_TYPE_UINT32);
 
-			vkCmdBindPipeline(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, quadGraphicsPipeline);
+			vkCmdBindPipeline(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, 
+				quadGraphicsPipeline);
 
 			// Draw the Quad
-			vkCmdDrawIndexed(commandBuffers[i], static_cast<uint32_t>(QuadIndices.size()), 1, 0, 0, 0);
+			vkCmdDrawIndexed(commandBuffers[i], static_cast<uint32_t>(QuadIndices.size()),
+				1, 0, 0, 0);
 		}
 		// End the render pass recording
 		vkCmdEndRenderPass(commandBuffers[i]);
@@ -2126,12 +2117,16 @@ void Application::updateUniformBuffer(uint32_t currentImage) {
 	UniformBufferObject ubo = {};
 	float mNow[16];
 	Ball_Value(&objectBall, mNow);
-	glm::mat4 rot = glm::make_mat4(mNow);// *glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f)) * glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-	ubo.model = glm::scale(glm::mat4(1.0), glm::vec3(uiParams.scale / (float)pow(2, uiParams.prevnoOfButterflies))) *  glm::translate(glm::mat4(1.0f), glm::vec3(-10.0f, 0.0f + translate_x * 2, -15.0f + translate_y * 2))*rot;// glm::rotate(glm::mat4(1.0f), glm::radians(10.0f) * rotate_y, glm::vec3(0.0f, 1.0f, 0.0f)) * glm::rotate(glm::mat4(1.0f), glm::radians(10.0f) * rotate_x, glm::vec3(0.0f, 0.0f, 1.0f)); //glm::scale(glm::mat4(1.0), glm::vec3(uiParams.scale)) *
-	//ubo.view = glm::lookAt(glm::vec3(0.0f, -100.0f, 100.0f), glm::vec3(0.0f, 0.0f, 40.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+	glm::mat4 rot = glm::make_mat4(mNow);
+	ubo.model = glm::scale(glm::mat4(1.0), glm::vec3(uiParams.scale / (float)pow(2, uiParams.prevnoOfButterflies))) 
+		*  glm::translate(glm::mat4(1.0f), glm::vec3(-10.0f, 0.0f + translate_x * 2, -15.0f + translate_y * 2))*rot;
+	
 	ubo.view = glm::lookAt(glm::vec3(85.0f, 2.0f, 100.0f), glm::vec3(0.0f, 0.0f, 40.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-	ubo.proj = glm::perspective(glm::radians(45.0f), swapChain->swapChainExtent.width / (float)swapChain->swapChainExtent.height, 0.1f, 1000.0f);
+	
+	ubo.proj = glm::perspective(glm::radians(45.0f), 
+		swapChain->swapChainExtent.width / (float)swapChain->swapChainExtent.height, 0.1f, 1000.0f);
 	ubo.proj[1][1] *= -1;
+	
 	uniformBuffers[currentImage]->SetData(device, &ubo, sizeof(ubo));
 }
 
@@ -2190,27 +2185,21 @@ void Application::recreateSwapChain() {
 	// Create frame buffers
 	createFramebuffers();
 
-	//createComputeBuffers();
-
+	// Recreate uniform buffers
 	createUniformBuffers();
 
+	// Recreate the descriptor sets
 	createDescriptorPool();
-
 	createDescriptorSets();
-
 	createQuadDescriptorPool();
-
 	createQuadDescriptorSets();
 
 	// Create command buffers
 	createCommandBuffers();
 
+	//Init ImGUI
 	imGui->InitImGUI(&instance, window, device, swapChain, commandPool);
 }
-
-////////////////////////
-// Cleanup Functions //
-//////////////////////
 
 // Cleanup function to destroy swap chain and related components
 void Application::cleanupSwapChain() {
@@ -2248,17 +2237,14 @@ void Application::cleanupSwapChain() {
 		lightingBuffers[i]->Cleanup(device);
 		iridescentBuffers[i]->Cleanup(device);
 	}
-	//SpectralParametersBuffer->Cleanup(device);
-	//
-	//ComputeBuffers->Cleanup(device);
 
 	// Destroy the descriptor pool
 	vkDestroyDescriptorPool(device->logicalDevice, descriptorPool, nullptr);
 
-
 	// Destroy the descriptor pool
 	vkDestroyDescriptorPool(device->logicalDevice, quadDescriptorPool, nullptr);
 
+	// Cleanup ImGUI
 	imGui->CleanupImGUI(device);
 }
 
@@ -2359,7 +2345,8 @@ void Application::createComputeDescriptorSet() {
 	allocInfo.descriptorSetCount = 1;
 	allocInfo.pSetLayouts = &computeDescriptorSetLayout;
 
-	if (vkAllocateDescriptorSets(device->logicalDevice, &allocInfo, &computeDescriptorSet) != VK_SUCCESS) {
+	if (vkAllocateDescriptorSets(device->logicalDevice, &allocInfo, &computeDescriptorSet) 
+		!= VK_SUCCESS) {
 		throw std::runtime_error("failed to allocate descriptor sets!");
 	}
 
@@ -2391,7 +2378,8 @@ void Application::createComputeDescriptorSet() {
 	descriptorWrites[1].descriptorCount = 1;
 	descriptorWrites[1].pBufferInfo = &spectralParametersBufferInfo;
 
-	vkUpdateDescriptorSets(device->logicalDevice, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
+	vkUpdateDescriptorSets(device->logicalDevice, 
+		static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
 }
 
 // function to create descriptor set layout for compute pipeline to  provide the details about descriptor bindings in every shader
@@ -2422,7 +2410,7 @@ void Application::createComputeDescriptorSetLayout() {
 }
 
 // Function to create command pool for compute pipeline
-	// Command Pool - Manage the memory used to store the buffers. Command buffers are allocated from Command Pools
+// Command Pool - Manage the memory used to store the buffers. Command buffers are allocated from Command Pools
 void Application::createComputeCommandPool() {
 	// Query the queue family indices
 	QueueFamilyIndices queueFamilyIndices = device->findQueueFamilies();
@@ -2508,7 +2496,8 @@ void Application::createComputeCommandBuffers() {
 	vkCmdBindPipeline(computeCommandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, ComputePipeline);
 
 
-	vkCmdBindDescriptorSets(computeCommandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, computePipelineLayout, 0, 1, &computeDescriptorSet, 0, nullptr);
+	vkCmdBindDescriptorSets(computeCommandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, 
+		computePipelineLayout, 0, 1, &computeDescriptorSet, 0, nullptr);
 
 	int workgroups_x = (uint32_t)ceil(spectralParameters.textureWidth / float(32));
 	int workgroups_y = (uint32_t)ceil(spectralParameters.textureHeight / float(32));
@@ -2557,8 +2546,8 @@ void Application::runComputeCommandBuffer() {
 	vkDestroyFence(device->logicalDevice, fence, NULL);
 }
 
-// Function to create texture image
-void Application::createTextureImageFromComputeBuffer() {
+// Function to create fetch iridescent colours from the spectra
+void Application::FetchIridescentColoursFromSpectra() {
 
 	VkDeviceSize imageSize = spectralParameters.textureWidth*spectralParameters.textureHeight;
 
@@ -2576,6 +2565,8 @@ void Application::createTextureImageFromComputeBuffer() {
 	int peakWavelengthIndex = 0;
 	float peakWavelength = 0;
 	peakWavelengths.clear();
+
+	// Loop through the spectrum
 	for (int i = 0; i < imageSize; i++) {
 		double value = pmappedMemory[i].r;
 		spectra.push_back(value);
@@ -2588,13 +2579,19 @@ void Application::createTextureImageFromComputeBuffer() {
 		}
 		if (i % (int)spectralParameters.textureWidth == spectralParameters.textureWidth - 1)
 		{
+			// Convert spectra to XYZ
 			xyz = GetXYZColorFromSpectra(spectra);
+
+			// Convert XYZ to RGB colour
 			rgb = ConvertXYZtoRGB(xyz);
+
+			// Set the iridescent colour in this incident angle
 			iridescentColors.colors[j].x = rgb.x;
 			iridescentColors.colors[j].y = rgb.y;
 			iridescentColors.colors[j].z = rgb.z;
 			iridescentColors.colors[j].w = 1.0;
 
+			// Fetch the peak wavelength
 			peakWavelengths.push_back(peakWavelength);
 			peakWavelength = 0;
 			peakWavelengthIndex = 0;
@@ -2602,6 +2599,8 @@ void Application::createTextureImageFromComputeBuffer() {
 		}
 	}
 	spectra.clear();
+
+	// Fetch the colour from the original spectra
 	for (int i = 0; i < spectralParameters.noOfSpectralValues; i++) {
 		double value = pmappedMemory[i].g;
 		spectra.push_back(value);
@@ -2617,10 +2616,11 @@ void Application::createTextureImageFromComputeBuffer() {
 
 }
 
-void Application::FindMatrixA()
+// Function to find the fourier matrix
+void Application::FindFourierMatrix()
 {
-	double minWavelength = 390.0;
-	double maxWavelength = 790.0;
+	double minWavelength = MIN_WAVELENGTH;
+	double maxWavelength = MAX_WAVELENGTH;
 	double diffWavelength = maxWavelength - minWavelength;
 	int n = 400;
 	double del = (maxWavelength - minWavelength) / n;
@@ -2664,7 +2664,7 @@ void Application::FindMatrixA()
 			vals.push_back(val);
 		}
 		double integralValue = MathHelper::IntegrateValues(vals);
-		AMatrix.values[i / 3][i % 3] = k * integralValue;
+		FourierMatrix.values[i / 3][i % 3] = k * integralValue;
 	}
 }
 
@@ -2787,16 +2787,7 @@ void Application::ReadChromaticityXMLFile(const char* filename) {
 		double hue = getHueFromXYZ(Coord);
 		key = std::to_string((double)hue);
 		key = key.substr(0, key.find('.') + 3);
-		//Vec3 vec1 = White - Coord;
-		//if (HueAngleWavelengthMap.size() == 0)
-		//{
-		//	//VioletVec = vec1;
-		//	key = 0.0;
-		//}
-		//else
-		//{
-		//	key = VioletVec.Angle(&vec1);
-		//}
+
 		HueAngleWavelengthMap.emplace(key, wavelength);
 		HueAngleCoordMap.emplace(key, Coord);
 		inputFile >> tempString;
@@ -2806,6 +2797,7 @@ void Application::ReadChromaticityXMLFile(const char* filename) {
 	inputFile.close();
 }
 
+// Function to convert RGB to XYZ colour
 Vec3 Application::ConvertRGBtoXYZ(Vec3 colorInRGB)
 {
 	Vec3 XYZ;
@@ -2824,33 +2816,7 @@ Vec3 Application::ConvertRGBtoXYZ(Vec3 colorInRGB)
 	return XYZ;
 }
 
-Vec3 Application::ConvertRGBtoHSV(Vec3 colorInRGB)
-{
-	Vec3 HSV;
-	double max = std::max(std::max(colorInRGB.x, colorInRGB.y), colorInRGB.z);
-	double min = std::min(std::min(colorInRGB.x, colorInRGB.y), colorInRGB.z);
-	HSV.z = (max + min) / 2.0;
-	HSV.y = max != 0.0 ? (max - min) / (max) : 0.0;// (max - min) / (2.0 - (max + min));// (max != 0.0) ? ((max - min) / max) : 0.0;
-	if (HSV.y == 0.0)
-		HSV.x = 0.0;
-	else
-	{
-		double delta = max - min;
-		if (colorInRGB.x == max)
-			HSV.x = (colorInRGB.y - colorInRGB.z) / delta;
-		else if (colorInRGB.y == max)
-			HSV.x = 2.0 + (colorInRGB.z - colorInRGB.x) / delta;
-		else if (colorInRGB.z == max)
-			HSV.x = 4.0 + (colorInRGB.x - colorInRGB.y) / delta;
-
-		HSV.x *= 60.0;
-		if (HSV.x < 0.0)
-			HSV.x += 360.0;
-	}
-
-	return HSV;
-}
-
+// Function to convert XYZ to RGB colour
 Vec3 Application::ConvertXYZtoRGB(Vec3 colorInXYZ)
 {
 	Vec3 RGB;
@@ -2871,51 +2837,24 @@ Vec3 Application::ConvertXYZtoRGB(Vec3 colorInXYZ)
 	RGB.x = RGB.x > 1.0 ? 1.0 : RGB.x;
 	RGB.y = RGB.y > 1.0 ? 1.0 : RGB.y;
 	RGB.z = RGB.z > 1.0 ? 1.0 : RGB.z;
-	//double sum = RGB.x + RGB.y + RGB.z;
-	//if (sum != 0 && sum > 1.0)
-	//{
-	//	RGB.x = RGB.x / sum;// (x + y + z);
-	//	RGB.y = RGB.y / sum;// (x + y + z);
-	//	RGB.z = RGB.z / sum;// (x + y + z);
-	//}
-
-
+	
 	return RGB;
 }
 
-
+// Function to find fourier coefficients
 void Application::FindFourierCoefficients(Vec3 colorInXYZ)
 {
-	Matrix3 AInverse = AMatrix.Inverse();
+	Matrix3 AInverse = FourierMatrix.Inverse();
 	FourierCoeffs = AInverse * colorInXYZ;
 }
 
-std::vector<double> Application::ConstructSpectra()
-{
-	double minWavelength = 390.0;
-	double maxWavelength = 790.0;
-	double diffWavelength = maxWavelength - minWavelength;
-	int n = 400;
-	double del = (maxWavelength - minWavelength) / n;
-
-	std::vector<double> vals;
-	for (int j = 0; j < n; j++)
-	{
-		double wavelength = minWavelength + j * del;
-
-		double angle = 2 * 3.14 * ((wavelength - minWavelength) / diffWavelength);
-		double val = FourierCoeffs.x + FourierCoeffs.y * cos(angle) + FourierCoeffs.z * sin(angle);
-		vals.push_back(val);
-	}
-	return vals;
-}
-
+// Function to convert Spectra to XYZ colour
 Vec3 Application::GetXYZColorFromSpectra(std::vector<double> spectra)
 {
 	double minWavelength = uiParams.minWavelength;
 	double maxWavelength = uiParams.maxWavelength;
 	double diffWavelength = maxWavelength - minWavelength;
-	int n = uiParams.noOfSpectralValues;// *diffWavelength;
+	int n = uiParams.noOfSpectralValues;
 	double del = (maxWavelength - minWavelength) / n;
 	double k = 1;
 	std::vector<double> xvals, yvals, zvals;
@@ -2938,53 +2877,11 @@ Vec3 Application::GetXYZColorFromSpectra(std::vector<double> spectra)
 	double y = k * MathHelper::IntegrateValues(yvals);
 	double z = k * MathHelper::IntegrateValues(zvals);
 	double sum = x + y + z;
-	//if (sum != 0 && sum > 1.0)
-	//{
-	//	x = x / sum;// (x + y + z);
-	//	y = y / sum;// (x + y + z);
-	//	z = z / sum;// (x + y + z);
-	//	//z = 1 - x - y;
-	//}
-	//z = 1 - x - y;
+
 	return { (float)x,(float)y,(float)z };
 }
 
-std::vector<double> Application::ConstructSpectraGaussian(Vec3 hsv)
-{
-	std::string key = std::to_string((double)hsv.x);
-	key = key.substr(0, key.find('.') + 3);
-	double dominantWavelength;
-	if (HueAngleWavelengthMap.count(key) <= 0)
-	{
-		key = std::to_string((int)hsv.x);
-		dominantWavelength = HueAngleWavelengthMap.lower_bound(key)->second;
-	}
-	else
-		dominantWavelength = HueAngleWavelengthMap.at(key);
-	double minWidth = 5.0;
-	double maxWidth = 74.0;
-	double width = hsv.y * minWidth + (1 - hsv.y) * maxWidth;
-	double minWavelength = 390.0;
-	double maxWavelength = 790.0;
-	double h = hsv.z;
-	int n = 400;
-	double del = (maxWavelength - minWavelength) / n;
-
-	std::vector<double> vals;
-	for (int j = 0; j < n; j++)
-	{
-		double wavelength = minWavelength + j * del;
-		double wavelengthDiff = (wavelength - dominantWavelength);
-		double pow = -1 * (wavelengthDiff * wavelengthDiff) / (2 * width * width);
-		double val = exp(pow);
-		//val = val > std::numeric_limits<double>::max() ? std::numeric_limits<double>::max() : val;
-		//val = val < std::numeric_limits<double>::min() ? std::numeric_limits<double>::min() : val;
-		//val = val < 0 ? 0 : val;
-		vals.push_back(val);
-	}
-	return vals;
-}
-
+// Function to update spectral parameters
 void Application::UpdateSpectralParameters()
 {
 	Vec3 colorInXyz = ConvertRGBtoXYZ(uiParams.inputLightColor);
@@ -2995,7 +2892,7 @@ void Application::UpdateSpectralParameters()
 	hsv.x = colorInXyz.x / (colorInXyz.x + colorInXyz.y + colorInXyz.z);
 	hsv.y = colorInXyz.y / (colorInXyz.x + colorInXyz.y + colorInXyz.z);
 	hsv.z = colorInXyz.z / (colorInXyz.x + colorInXyz.y + colorInXyz.z);
-	hsv = ConvertXYZtoHSV(hsv);
+	hsv = CalculateSaturationAndDominantWavelength(hsv);
 	hsv.y = hsv.y > 1.0 ? 1.0 : hsv.y;
 	std::string key = std::to_string((double)hsv.x);
 	key = key.substr(0, key.find('.') + 3);
@@ -3011,7 +2908,7 @@ void Application::UpdateSpectralParameters()
 
 	spectralParameters.textureHeight = 90.0;
 	spectralParameters.textureWidth = uiParams.noOfSpectralValues;
-	spectralParameters.maxSpectralValue = 1.0;// To do: Get from UI
+	spectralParameters.maxSpectralValue = 1.0;
 	spectralParameters.FourierCoefficients = FourierCoeffs;
 	spectralParameters.dominantWavelength = dominantWavelength;
 	spectralParameters.gaussianMaxWidth = uiParams.gaussianMaxWidth;
@@ -3031,45 +2928,11 @@ void Application::UpdateSpectralParameters()
 	SpectralParametersBuffer->SetData(device, &spectralParameters, sizeof(spectralParameters));
 }
 
-std::vector<double> Application::ConstructIridescentSpectra(std::vector<double> inputSpectra)
-{
-	std::vector<double> iridescentSpectra;
-	double theta = 158.0 *(3.14 / 180.0);
-	double filmDensity = 150.0;// 90.0;
-	double airDensity = 100.0;// 90.0;
-	double filmIOR = 1.50;// 1.56;
-
-	// Snell's law
-	double theta_1 = asin(sin(theta) / filmIOR);
-
-	double val = 4 * 3.14 * (filmIOR * filmDensity * cos(theta_1) + airDensity * cos(theta));
-	double delB = 0.0;
-	double minWavelength = 390.0;
-	double maxWavelength = 790.0;
-	int n = inputSpectra.size();
-	double del = (maxWavelength - minWavelength) / n;
-	double interferencePower = 3;
-	double m = 8;
-	for (int i = 0; i < n; i++)
-	{
-		double wavelength = minWavelength + i * del;
-		delB = (val / wavelength);// *(3.14 / 180.0);
-		double cosDelB = cos(delB);
-		double R = 0.0;
-		if (cosDelB > 0)
-			R = inputSpectra[i] * interferencePower * pow(cosDelB, m);
-
-		iridescentSpectra.push_back(R);
-	}
-
-	return iridescentSpectra;
-}
-
-Vec3 Application::ConvertXYZtoHSV(Vec3 colorInXYZ)
+// Function to calculate saturation and dominant wavelength
+Vec3 Application::CalculateSaturationAndDominantWavelength(Vec3 colorInXYZ)
 {
 	Vec3 hsv;
 	Vec3 White = { 0.31271 ,0.32902 ,0.35827 };
-	//Vec3 White = { 0.33 ,0.33 ,0.33 };
 	Vec3 VioletVec = { 0.16638 ,0.01830 ,0.81532 };
 	Vec3 dominantWavelengthCoord;
 	Vec3 vec1 = White - colorInXYZ;
@@ -3095,10 +2958,10 @@ Vec3 Application::ConvertXYZtoHSV(Vec3 colorInXYZ)
 	return hsv;
 }
 
+// Function to get hue to XYZ colour
 double Application::getHueFromXYZ(Vec3 colorInXYZ)
 {
 	Vec3 White = { 0.31271 ,0.32902 ,0.35827 };
-	//Vec3 White = { 0.33 ,0.33 ,0.33 };
 	Vec3 VioletVec = { 0.16638 ,0.01830 ,0.81532 };
 
 	Vec3 vec1 = White - colorInXYZ;
@@ -3107,7 +2970,8 @@ double Application::getHueFromXYZ(Vec3 colorInXYZ)
 	return vec1.Angle(&vec2);
 }
 
-void Application::prepareInstanceData()
+// Function to generate instance data
+void Application::GenerateInstanceData()
 {
 	std::vector<InstanceData> instanceData;
 	int noOfButterflies = pow(10, uiParams.noOfButterflies);
@@ -3119,18 +2983,19 @@ void Application::prepareInstanceData()
 		float y = (float)(rand() % 50 - 25);
 		float z = (float)(rand() % 50 - 25);
 		instanceData[i].instancePosition = Vec3{ x, y, z };
-		instanceData[i].scale = 1.0 / 10.0;// (float)noOfButterflies;
+		instanceData[i].scale = 1.0 / 10.0;
 		x = (float)(rand() % 50 - 25);
 		y = (float)(rand() % 50 - 25);
 		z = (float)(rand() % 50 - 25);
 		instanceData[i].rotation = Vec3{ x, y, z };
 	}
 
-
-	InstanceBuffer->SetData(device, instanceData.data(), instanceData.size() * sizeof(InstanceData));
-
+	// Set instance data
+	InstanceBuffer->SetData(device, instanceData.data(), 
+		instanceData.size() * sizeof(InstanceData));
 }
 
+// Init Quad
 void Application::InitQuad()
 {
 	Vertex v;
@@ -3434,7 +3299,8 @@ VK_DYNAMIC_STATE_LINE_WIDTH
 	// 3rd Parameter - Pipeline create info
 	// 4th Parameter - Custom allocator
 	// 5th Parameter - Pointer to the created graphics pipeline
-	if (vkCreateGraphicsPipelines(device->logicalDevice, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &quadGraphicsPipeline) != VK_SUCCESS) {
+	if (vkCreateGraphicsPipelines(device->logicalDevice, VK_NULL_HANDLE, 1, 
+		&pipelineInfo, nullptr, &quadGraphicsPipeline) != VK_SUCCESS) {
 		// Throw runtime error exception as graphics pipeline creation failed
 		throw std::runtime_error("failed to create graphics pipeline!");
 	}
@@ -3465,7 +3331,8 @@ void Application::createQuadDescriptorPool() {
 
 // Function to create descriptor sets for each Vk Buffer
 void Application::createQuadDescriptorSets() {
-	std::vector<VkDescriptorSetLayout> layouts(swapChain->swapChainImages.size(), quadDescriptorSetLayout);
+	std::vector<VkDescriptorSetLayout> layouts(swapChain->swapChainImages.size(),
+		quadDescriptorSetLayout);
 	VkDescriptorSetAllocateInfo allocInfo = {};
 	allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
 	allocInfo.descriptorPool = quadDescriptorPool;
@@ -3473,7 +3340,8 @@ void Application::createQuadDescriptorSets() {
 	allocInfo.pSetLayouts = layouts.data();
 
 	quadDescriptorSets.resize(swapChain->swapChainImages.size());
-	if (vkAllocateDescriptorSets(device->logicalDevice, &allocInfo, quadDescriptorSets.data()) != VK_SUCCESS) {
+	if (vkAllocateDescriptorSets(device->logicalDevice, &allocInfo, 
+		quadDescriptorSets.data()) != VK_SUCCESS) {
 		throw std::runtime_error("failed to allocate descriptor sets!");
 	}
 
@@ -3494,7 +3362,9 @@ void Application::createQuadDescriptorSets() {
 		descriptorWrites[0].descriptorCount = 1;
 		descriptorWrites[0].pImageInfo = &imageInfo;
 
-		vkUpdateDescriptorSets(device->logicalDevice, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
+		vkUpdateDescriptorSets(device->logicalDevice,
+			static_cast<uint32_t>(descriptorWrites.size()), 
+			descriptorWrites.data(), 0, nullptr);
 	}
 }
 
