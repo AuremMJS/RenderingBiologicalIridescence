@@ -55,9 +55,11 @@ layout(location = 12) out float fragAmbientIntensity;
 layout(location = 13) out float transparency;
 layout(location = 14) out float useNormalMap;
 layout(location = 15) out float useOpacityMap;
+
 // Main function
 void main() {
 	
+	// Calculate the rotation of the instance
 	mat4 gRotMat;
 	float s = sin(rotation.x);
 	float c = cos(rotation.x);
@@ -83,18 +85,19 @@ void main() {
 	// Calculate vector from light positin to current vertex
 	fragLightVector = ubo.view * lighting.lightPosition - VCS_position;
 
-	// Pass Phong specular, ambient and diffuse values
-	fragSpecularLighting = lighting.lightSpecular;
-	fragDiffuseLighting = lighting.lightDiffuse;
+	// Pass specular and ambient values
 	fragAmbientLighting = lighting.lightAmbient;
 	fragSpecularCoefficient = lighting.lightSpecularExponent;
 	fragSpecularIntensity = lighting.specularIntensity;
-	fragDiffuseIntensity = lighting.diffuseIntensity;;
-	fragAmbientIntensity = lighting.ambientIntensity;;
+	fragAmbientIntensity = lighting.ambientIntensity;
+
+	// Pass transparency
 	transparency = lighting.transparency;
+
+	// Pass bools specifying whether to use normal and opacity map
 	useNormalMap = lighting.useNormalMap;
 	useOpacityMap = lighting.useOpacityMap;
-	// Pass stages info specifying which stages are enabled
-	stagesInfo = vec4(lighting.ambientEnabled, lighting.diffuseEnabled, lighting.specularEnabled,lighting.textureEnabled );
 
+	// Pass stages info specifying which stages are enabled
+	stagesInfo = vec4(lighting.ambientEnabled, lighting.diffuseEnabled, lighting.specularEnabled,lighting.textureEnabled);
 }

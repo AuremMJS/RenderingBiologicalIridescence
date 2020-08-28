@@ -6,7 +6,7 @@ layout(binding = 2) uniform sampler2D texSampler;
 
 layout(binding = 7) uniform sampler2D normalSampler;
 
-// Uniform for Model, View and Projection matrices
+// Uniform for Iridescent colours
 layout(binding = 6) uniform IridescentColors {
     vec4 colors[90];
 } iridescentColors;
@@ -45,6 +45,7 @@ void main() {
 	vec4 normNormal = normalize(vec4(fragNormal,1.0));
 	if(useNormalMap > 0.5)
 		normNormal = normalize(texture(normalSampler, fragTexCoord));
+
 	// Calculate the diffuse component
 	float diffuseDotProduct = dot(normLightVector, normNormal);
 
@@ -56,20 +57,25 @@ void main() {
 	// Calculate the total lighting
 	vec4 lightingColor = ambientLight;
 
+	// Calculate the opacity from opacity map
 	vec4 opacityColor = texture(texSampler, fragTexCoord);
-
-	
 	float opacity = opacityColor.x;
+
+	// Calculate the angle of incidence
 	int angle = 90 - int(ceil(diffuseDotProduct*90));
+
+	// Fetch the iridescent colour
 	vec4 iridescentColor = vec4(0.0);
 	if(stagesInfo.y > 0.5 && stagesInfo.z >0.5)
 		iridescentColor = iridescentColors.colors[angle]* fragSpecularIntensity * specularPower;
 	else if(stagesInfo.y > 0.5 && stagesInfo.z <0.5)
 		iridescentColor = iridescentColors.colors[angle]* fragSpecularIntensity;
 
+	// Calculate the total colour
 	lightingColor =  iridescentColor + ambientLight;
+
+	// Render the iridescent colour or black based on opacity value
 	if(opacity < 0.5 && useOpacityMap>0.5)
 		lightingColor = vec4(0.0);
 	outColor =min(vec4(lightingColor.xyz,transparency),vec4(1.0));
-	
 }
